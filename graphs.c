@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "graphs.h"
+#include "ansii.h"
 
-Node *nodeCtor(int value) {
-	Node *node = malloc(sizeof(Node));
-	node->edges = NULL;
-	node->value = value;
-	node->edgeCount = 0;
-	node->status = NOT_VISITED;
-	node->parent = NULL;
+Node nodeCtor(int value) {
+	Node node;
+	node.edges = NULL;
+	node.value = value;
+	node.edgeCount = 0;
+	node.status = NOT_VISITED;
+	node.parent = NULL;
 	return node;
 }
 
@@ -22,6 +23,7 @@ bool nodeAddEdge(Node *node, int distance, Node *to) {
 
 	Edge *edges = realloc(node->edges, node->edgeCount * sizeof(Edge));
 	if (edges == NULL) {
+		printError("%s", "Could not alloce enough memory for graph\n");
 		return false;
 	}
 	edges[node->edgeCount - 1] = edge;
@@ -61,7 +63,7 @@ void nodeBacktrackPrint(Node *node) {
 // 	printGraphHeader(graph);
 // }
 //
-Graph graphCtor(int size, Node **nodes) {
+Graph graphCtor(int size, Node *nodes) {
 	Graph graph;
 	graph.size = size;
 	graph.nodes = nodes;
@@ -77,10 +79,29 @@ Graph emptyGraph() {
 
 void graphDtor(Graph *graph) {
 	for (int i = 0; i < graph->size; i++) {
-		free(graph->nodes[i]);
+		free(graph->nodes[i].edges);
 	}
 	free(graph->nodes);
 	graph->nodes = NULL;
 	graph->size = 0;
 }
 
+Graph createGraphFromHeaderValues(List *headerValues) {
+	Node *nodes = malloc(headerValues->size * sizeof(Node));
+	for (int i = 0; i < headerValues->size; i++) {
+		nodes[i] = nodeCtor(headerValues->values[i]);
+	}
+	return graphCtor(headerValues->size, nodes);
+}
+
+void printGraphValues(Graph *graph) {
+	for (int i = 0; i < graph->size; i++) {
+		printf("%d ", graph->nodes[i].value);
+	}
+}
+
+void printGraphValidValuesError(Graph *graph) {
+	printf("Valid values are: ");
+	printGraphValues(graph);
+	printf("\n");
+}

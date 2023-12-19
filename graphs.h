@@ -1,5 +1,7 @@
-#ifndef graphs
-#define graphs
+#ifndef GRAPHS_HEADER
+#define GRAPHS_HEADER
+
+#include "list.h"
 
 struct Node_;
 struct Neighbour_;
@@ -23,18 +25,21 @@ typedef struct Edge_ {
 } Edge;
 
 typedef struct {
-	Node **nodes;
+	Node *nodes;
 	int size;
 } Graph;
 
-Node *nodeCtor(int value);
+Node nodeCtor(int value);
 bool nodeAddEdge(Node *node, int distance, Node *to);
 bool nodeAddEdgeBothDirections(Node *node1, Node *node2, int distance);
 void nodeToInitialState(Node *node);
 void nodePrint(Node *node);
 void nodeBacktrackPrint(Node *node);
 void graphDtor(Graph *graph);
-Graph graphCtor(int size, Node **nodes);
+Graph graphCtor(int size, Node *nodes);
 Graph emptyGraph();
+Graph createGraphFromHeaderValues(List *headerValues);
+void printGraphValues(Graph *graph);
+void printGraphValidValuesError(Graph *graph);
 
 #endif
