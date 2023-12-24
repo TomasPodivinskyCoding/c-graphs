@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
+#include <limits.h>
 #include "graphs.h"
 #include "ansii.h"
 
@@ -8,13 +10,14 @@ Node nodeCtor(int value) {
 	Node node;
 	node.edges = NULL;
 	node.value = value;
+	node.distance = INT_MAX;
 	node.edgeCount = 0;
 	node.status = NOT_VISITED;
 	node.parent = NULL;
 	return node;
 }
 
-bool nodeAddEdge(Node *node, int distance, Node *to) {
+void nodeAddEdge(Node *node, int distance, Node *to) {
 	Edge edge;
 	edge.distance = distance;
 	edge.node = to;
@@ -22,18 +25,10 @@ bool nodeAddEdge(Node *node, int distance, Node *to) {
 	node->edgeCount = node->edgeCount + 1;
 
 	Edge *edges = realloc(node->edges, node->edgeCount * sizeof(Edge));
-	if (edges == NULL) {
-		printError("%s", "Could not alloce enough memory for graph\n");
-		return false;
-	}
+	assert(edges != NULL && "Could not alloce enough memory for graph\n");
 	edges[node->edgeCount - 1] = edge;
 
 	node->edges = edges;
-	return true;
-}
-
-bool nodeAddEdgeBothDirections(Node *node1, Node *node2, int distance) {
-	return nodeAddEdge(node1, distance, node2) && nodeAddEdge(node2, distance, node1);
 }
 
 void nodeToInitialState(Node *node) {
@@ -56,13 +51,6 @@ void nodeBacktrackPrint(Node *node) {
 	printf("%d ", node->value);
 }
 
-// void printGraphHeader(Graph *graph) {
-// }
-// 
-// void printGraph(Graph *graph) {
-// 	printGraphHeader(graph);
-// }
-//
 Graph graphCtor(int size, Node *nodes) {
 	Graph graph;
 	graph.size = size;
@@ -77,21 +65,25 @@ Graph emptyGraph() {
 	return graph;
 }
 
+void appendNode(Graph *graph, Node *node) {
+	graph->size++;
+	Node *nodes = realloc(graph->nodes, graph->size * sizeof(Node));
+	assert(nodes != NULL && "Could not allocate enough memory.\n");
+	nodes[graph->size - 1] = *node;
+	graph->nodes = nodes;
+
+}
+
 void graphDtor(Graph *graph) {
+	if (graph == NULL) {
+		return;
+	}
 	for (int i = 0; i < graph->size; i++) {
 		free(graph->nodes[i].edges);
 	}
 	free(graph->nodes);
 	graph->nodes = NULL;
 	graph->size = 0;
-}
-
-Graph createGraphFromHeaderValues(List *headerValues) {
-	Node *nodes = malloc(headerValues->size * sizeof(Node));
-	for (int i = 0; i < headerValues->size; i++) {
-		nodes[i] = nodeCtor(headerValues->values[i]);
-	}
-	return graphCtor(headerValues->size, nodes);
 }
 
 void printGraphValues(Graph *graph) {
@@ -105,3 +97,13 @@ void printGraphValidValuesError(Graph *graph) {
 	printGraphValues(graph);
 	printf("\n");
 }
+
+Node *getGraphNode(Graph *graph, int value) {
+	for (int i = 0; i < graph->size; i++) {
+		if (graph->nodes[i].value == value) {
+			return &graph->nodes[i];
+		}
+	}
+	return NULL;
+}
+

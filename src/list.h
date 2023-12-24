@@ -9,6 +9,6 @@ typedef struct {
 
 List listCtor();
 void listDtor(List *list);
-bool listAppend(List *list, int num);
+void listAppend(List *list, int num);
 
 #endif

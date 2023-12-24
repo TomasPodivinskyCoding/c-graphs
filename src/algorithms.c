@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 #include "graphs.h"
+#include "priority_queue.h"
+#include "dprint.h"
 
 Node *bfs(Node *startNode, Node *endNode, int nodeCount) {
 	int currentElementIndex = 0;
@@ -59,3 +62,37 @@ Node *dfs(Node *startNode, Node *endNode, int nodeCount) {
 	}
 	return NULL;
 }
+
+Node *dijkstra(Node *startNode, Node *endNode, int nodeCount) {
+	NodePQ queue = nodePQCtor(nodeCount);
+
+	startNode->distance = 0;
+	nodePQInsert(&queue, startNode);
+	while (queue.size > 0) {
+		Node *currentNode = nodePQPop(&queue);
+		currentNode->status = CLOSED;
+		for (int i = 0; i < currentNode->edgeCount; i++) {
+			Edge edge = currentNode->edges[i];
+			int distanceToNode = currentNode->distance + edge.distance;
+			if (distanceToNode >= edge.node->distance) {
+				continue;
+			}
+
+			edge.node->parent = currentNode;
+			if (edge.node->status == NOT_VISITED) {
+				edge.node->distance = distanceToNode;
+				nodePQInsert(&queue, edge.node);
+				edge.node->status = VISITED;
+			} else if (edge.node->status == VISITED) {
+				nodePQUpdate(&queue, edge.node, distanceToNode);
+			}
+		}
+	}
+
+	nodePQDtor(&queue);
+	if (endNode->distance == INT_MAX) {
+		return NULL;
+	}
+	return endNode;
+}
+
