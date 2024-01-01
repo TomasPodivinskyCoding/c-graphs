@@ -3,6 +3,6 @@
 
 #include "graphs.h"
 
-void parseAdjacencyMatrix(FILE *file, Graph *graph);
+bool parseAdjacencyMatrix(FILE *file, Graph *graph);
 
 #endif
