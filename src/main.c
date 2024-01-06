@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <malloc.h>
+#include <limits.h>
 #include "graphs.h"
 #include "algorithms.h"
 #include "ansii.h"
@@ -21,8 +22,15 @@ char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
         cols[0] = malloc((startValueDigitCount + digitCount(graph->nodes[row].value)) * sizeof(char) + 2 + 1);
         sprintf(cols[0], "%d->%d", start->value, graph->nodes[row].value);
 
-        cols[1] = malloc(digitCount(graph->nodes[row].distance) * sizeof(char) + 1 + 2);
-        sprintf(cols[1], "%d", graph->nodes[row].distance);
+        if (graph->nodes[row].distance == INT_MAX) {
+            char *infinity = "Infinity";
+            int stringLength = (int) strlen(infinity);
+            cols[1] = malloc(stringLength * sizeof(char) + 1);
+            memcpy(cols[1], infinity, stringLength * sizeof(char) + 1);
+        } else {
+            cols[1] = malloc(digitCount(graph->nodes[row].distance) * sizeof(char) + 1 + 2);
+            sprintf(cols[1], "%d", graph->nodes[row].distance);
+        }
 
         String path = nodePath(graph->nodes[row]);
         cols[2] = path.value;
@@ -36,7 +44,6 @@ char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
 }
 
 void printDijkstraOutput(Graph *graph, Node *start) {
-    // TODO assert and free do pici to bude bolest
     TableParams tableParams;
     tableParams.colCount = 3;
     tableParams.rowCount = graph->size;
