@@ -24,8 +24,9 @@ bool parseAdjacencyMatrixHeader(Graph *graph, char *line) {
         // TODO error handling?
         char *endPtr;
         int value = strtol(line, &endPtr, 10);
-        Node node = nodeCtor(value);
-        appendNode(graph, &node);
+        if (!appendNode(graph, nodeCtor(value))) {
+            return false;
+        }
 
         line = endPtr;
         movePointerToNextDigit(&line);

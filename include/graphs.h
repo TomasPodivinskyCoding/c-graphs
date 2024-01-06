@@ -1,6 +1,8 @@
 #ifndef GRAPHS_HEADER 
 #define GRAPHS_HEADER
 
+#include "string_builder.h"
+
 struct Node_;
 struct Neighbour_;
 
@@ -34,12 +36,14 @@ void nodeAddEdge(Node *node, int distance, Node *to);
 void nodeToInitialState(Node *node);
 void nodePrint(Node *node);
 void nodeBacktrackPrint(Node *node);
+int nodeParentCount(Node node);
 void graphDtor(Graph *graph);
 Graph graphCtor(int size, Node *nodes);
 Graph emptyGraph();
-void appendNode(Graph *graph, Node *node);
+bool appendNode(Graph *graph, Node node);
 void printGraphValues(Graph *graph);
 void printGraphValidValuesError(Graph *graph);
 Node *getGraphNode(Graph *graph, int value);
+String nodePath(Node node);
 
 #endif

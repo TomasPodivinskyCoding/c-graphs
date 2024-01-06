@@ -5,21 +5,12 @@
 #include <string.h>
 #include "args_parser.h"
 #include "ansii.h"
+#include "help.h"
 
 #define helpKey 400
 
-bool parseArgumentNumber(int *to, char *str) {
-    char *endptr = NULL;
-    *to = strtol(str, &endptr, 10);
-
-    if (endptr == str) {
-        printError("Could not parse %s to a number\n", str);
-    }
-    return endptr == str;
-}
-
-StructuredArgs structuredArgsCtor() {
-    StructuredArgs args;
+ProgramArgs programArgsCtor() {
+    ProgramArgs args;
     args.showHelp = 0;
     args.algorithmKey = -1;
     args.file = NULL;
@@ -28,7 +19,18 @@ StructuredArgs structuredArgsCtor() {
     return args;
 }
 
-bool parseFileArg(StructuredArgs *args, int argc, char **argv) {
+bool parseArgumentNumber(int *to, char *str) {
+    char *endptr = NULL;
+    *to = strtol(str, &endptr, 10);
+
+    // TODO I ain't sure if this covers all errors that can occur in strtol
+    if (endptr == str) {
+        printError("Could not parse %s to a number\n", str);
+    }
+    return endptr != str;
+}
+
+bool parseFileArg(ProgramArgs *args, int argc, char **argv) {
     if (argc < 2) {
         return false;
     }
@@ -39,35 +41,34 @@ bool parseFileArg(StructuredArgs *args, int argc, char **argv) {
     return args->file != NULL;
 }
 
-bool handleOption(int argumentCode, int argc, char **argv, StructuredArgs *args) {
+bool handleOption(int argumentCode, int argc, char **argv, ProgramArgs *args) {
     switch (argumentCode) {
-        case helpKey:
-            args->showHelp = true;
-            break;
         case dijkstraKey:
         case bfsKey:
         case dfsKey:
             args->algorithmKey = argumentCode;
-            if (!parseFileArg(args, argc, argv)) {
+            bool areArgsCorrect =
+                    optind + 1 < argc
+                    && parseFileArg(args, argc, argv)
+                    && parseArgumentNumber(&args->startValue, argv[optind])
+                    && parseArgumentNumber(&args->endValue, argv[optind + 1]);
+            if (!areArgsCorrect) {
+                printUsage(argv[0]);
                 return false;
             }
-            if (optind + 1 >= argc) {
-                // printUsage();
-                return false;
-            }
-            parseArgumentNumber(&args->startValue, argv[optind]);
-            parseArgumentNumber(&args->endValue, argv[optind + 1]);
+
             break;
-        case '?': // TODO print usage
+        case '?':
         default:
+            printUsage(argv[0]);
             return false;
     }
     return true;
 }
 
-bool parseArgs(int argc, char **argv, StructuredArgs *args) {
+bool parseArgs(int argc, char **argv, ProgramArgs *args) {
     struct option longOptions[] = {
-            {"help", no_argument,  0, helpKey},
+            {"help", no_argument,  &args->showHelp, helpKey},
             {"dijkstra", no_argument,  0, dijkstraKey},
             {"bfs", no_argument, 0, bfsKey},
             {"dfs", no_argument, 0, dfsKey},

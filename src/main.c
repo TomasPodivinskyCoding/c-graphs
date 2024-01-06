@@ -1,37 +1,57 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <malloc.h>
 #include "graphs.h"
 #include "algorithms.h"
 #include "ansii.h"
 #include "adjacency_matrix_parser.h"
 #include "args_parser.h"
+#include "help.h"
+#include "print_table.h"
+#include "char_utils.h"
 
-void printOptions() {
-    // TODO it would be useful to have the program name here
-    printf("Options: \n");
-    printf("  --dijkstra: runs Dijkstra's algorithm on given graph\n");
-    printf("  --bfs:      runs BFS on given graph\n");
-    printf("  --dfs:      runs DFS on given graph\n");
+char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
+    char ***rowValues = malloc(graph->size * sizeof(char*));
+
+    int startValueDigitCount = digitCount(start->value);
+    int maxPathLength = 0;
+    for (int row = 0; row < rowCount; row++) {
+        char **cols = malloc(3 * sizeof(char *));
+        cols[0] = malloc((startValueDigitCount + digitCount(graph->nodes[row].value)) * sizeof(char) + 2 + 1);
+        sprintf(cols[0], "%d->%d", start->value, graph->nodes[row].value);
+
+        cols[1] = malloc(digitCount(graph->nodes[row].distance) * sizeof(char) + 1 + 2);
+        sprintf(cols[1], "%d", graph->nodes[row].distance);
+
+        String path = nodePath(graph->nodes[row]);
+        cols[2] = path.value;
+        if ((int) strlen(path.value) > maxPathLength) {
+            maxPathLength = (int) strlen(path.value);
+        }
+
+        rowValues[row] = cols;
+    }
+    return rowValues;
 }
 
-void printUsage(char *programName) {
-    // TODO it would be useful to have the program name here
-    printf("Usage: \n");
-    printf("  %s <file> (--dijkstra | --bfs | --dfs) <start_node> <end_node>\n", programName);
-}
+void printDijkstraOutput(Graph *graph, Node *start) {
+    // TODO assert and free do pici to bude bolest
+    TableParams tableParams;
+    tableParams.colCount = 3;
+    tableParams.rowCount = graph->size;
 
-void printHelp(char *programName) {
-    printf(BOLDWHITE "c-graphs\n" RESET);
-    printf("A small tool to try out some of the main graph algorithms.\n");
+    char *headerValues[] = { "Vertex", "Distance", "Path" };
+    tableParams.headerValues = headerValues;
+
+    tableParams.rowValues = prepareDijkstraOutputRows(graph, start, tableParams.rowCount);
     printf("\n");
-    printUsage(programName);
-    printf("\n");
-    printOptions();
+    printTable(&tableParams);
+    freeTable(&tableParams);
 }
 
 int main(int argc, char **argv) {
-	StructuredArgs args = structuredArgsCtor();
+	ProgramArgs args = programArgsCtor();
 	if (!parseArgs(argc, argv, &args)) {
 		return 1;
 	}
@@ -63,6 +83,13 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+    if (args.algorithmKey == dijkstraKey) {
+        dijkstra(start, end, graph.size);
+        printDijkstraOutput(&graph, start);
+        graphDtor(&graph);
+        return 0;
+    }
+
 	Node *lastNode = NULL;
     switch (args.algorithmKey) {
         case bfsKey:
@@ -70,15 +97,6 @@ int main(int argc, char **argv) {
             break;
         case dfsKey:
             lastNode = dfs(start, end, graph.size);
-            break;
-        case dijkstraKey:
-            lastNode = dijkstra(start, end, graph.size);
-            printf("Výsledná délka: %d\n", lastNode->distance);
-            Node *h = lastNode;
-            while (h != NULL) {
-                printf("%d %d\n", h->value, h->distance);
-                h = h->parent;
-            }
             break;
         default:
             // TODO

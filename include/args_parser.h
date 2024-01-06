@@ -14,9 +14,9 @@ typedef struct {
     FILE *file;
     int startValue;
     int endValue;
-} StructuredArgs;
+} ProgramArgs;
 
-StructuredArgs structuredArgsCtor();
-bool parseArgs(int argc, char **argv, StructuredArgs *args);
+ProgramArgs programArgsCtor();
+bool parseArgs(int argc, char **argv, ProgramArgs *args);
 
 #endif //C_GRAPHS_ARGS_PARSER_H

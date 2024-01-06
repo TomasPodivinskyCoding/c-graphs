@@ -5,6 +5,8 @@
 #include <limits.h>
 #include "graphs.h"
 #include "ansii.h"
+#include "math_utils.h"
+#include "string_builder.h"
 
 Node nodeCtor(int value) {
 	Node node;
@@ -47,8 +49,36 @@ void nodePrint(Node *node) {
 void nodeBacktrackPrint(Node *node) {
 	if (node->parent != NULL) {
 		nodeBacktrackPrint(node->parent);
-	}
-	printf("%d ", node->value);
+        printf(" %d", node->value);
+	} else {
+        printf("%d", node->value);
+    }
+}
+
+int nodeParentCount(Node node) {
+    int parentCount = 0;
+    while (node.parent != NULL) {
+        parentCount++;
+        node.parent = node.parent->parent;
+    }
+    return parentCount;
+}
+
+String nodePath(Node node) {
+    String path = stringCtor();
+    Node *pNode = &node;
+    while (true) {
+        stringAppendInt(&path, pNode->value);
+        pNode = pNode->parent;
+        if (pNode != NULL) {
+            stringAppendChar(&path, '>');
+            stringAppendChar(&path, '-');
+        } else {
+            break;
+        }
+    }
+    stringReverse(&path);
+    return path;
 }
 
 Graph graphCtor(int size, Node *nodes) {
@@ -65,13 +95,16 @@ Graph emptyGraph() {
 	return graph;
 }
 
-void appendNode(Graph *graph, Node *node) {
+bool appendNode(Graph *graph, Node node) {
 	graph->size++;
 	Node *nodes = realloc(graph->nodes, graph->size * sizeof(Node));
-	assert(nodes != NULL && "Could not allocate enough memory.\n");
-	nodes[graph->size - 1] = *node;
+    if (nodes == NULL) {
+        printf("Could not allocate enough memory.\n");
+        return false;
+    }
+	nodes[graph->size - 1] = node;
 	graph->nodes = nodes;
-
+    return true;
 }
 
 void graphDtor(Graph *graph) {
