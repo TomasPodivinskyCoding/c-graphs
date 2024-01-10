@@ -25,12 +25,11 @@ jobs:
     - name: Install valgrind
       env:
         CACHE_HIT: ${{steps.cache-valgrind.outputs.cache-hit}}
-        VALGRIND_VERSION: "3.18.1"
       run: |
         if [[ "$CACHE_HIT" == 'true' ]]; then
           sudo cp --verbose --force --recursive ~/valgrind/* /
         else
-          sudo apt-get install --yes valgrind="$VALGRIND_VERSION"
+          sudo apt-get install --yes valgrind
           mkdir -p ~/valgrind
           sudo dpkg -L valgrind | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/valgrind/
         fi
