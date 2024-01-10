@@ -21,6 +21,8 @@ jobs:
 
     - name: make test # TODO put run content into a separate shell script you lazy fuck?
       run: |
+        set +x # this basically means, don't exit when command returns 1
+        
         valgrind_error_code=5
         valgrind_params="--leak-check=full --error-exitcode=$valgrind_error_code"
         valgrind_run_options=(
@@ -36,6 +38,6 @@ jobs:
           if [ $? -eq $valgrind_error_code ]; then
             exitcode=1
           fi
-        echo "pici $?;"
+          echo "pici $?;"
         done
         exit $exitcode
