@@ -14,3 +14,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: make
       run:  make
+
+    - name: apt install valgrind
+      run: |
+        sudo apt-get -y install valgrind
+
+    - name: make test # TODO put run content into a separate shell script you lazy fuck?
+      run: |
+        valgrind ./bin/run ../../resources/adjacencyMatrix3.txt --dijkstra 1 7
+        valgrind ./bin/run ../../resources/adjacencyMatrix3.txt --bfs 1 7
+        valgrind ./bin/run ../../resources/missingValuesMatrix.txt --bfs 1 7
+        valgrind ./bin/run ../../resources/invalidAdjacencyMatrix.txt --bfs 1 7
