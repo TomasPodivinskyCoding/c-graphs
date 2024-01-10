@@ -21,7 +21,7 @@ jobs:
 
     - name: make test # TODO put run content into a separate shell script you lazy fuck?
       run: |
-        valgrind ./bin/run ../../resources/adjacencyMatrix3.txt --dijkstra 1 7
-        valgrind ./bin/run ../../resources/adjacencyMatrix3.txt --bfs 1 7
-        valgrind ./bin/run ../../resources/missingValuesMatrix.txt --bfs 1 7
-        valgrind ./bin/run ../../resources/invalidAdjacencyMatrix.txt --bfs 1 7
+        valgrind ./bin/run ./resources/adjacencyMatrix3.txt --dijkstra 1 7
+        valgrind ./bin/run ./resources/adjacencyMatrix3.txt --bfs 1 7
+        valgrind ./bin/run ./resources/missingValuesMatrix.txt --bfs 1 7
+        valgrind ./bin/run ./resources/invalidAdjacencyMatrix.txt --bfs 1 7
