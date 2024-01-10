@@ -21,7 +21,21 @@ jobs:
 
     - name: make test # TODO put run content into a separate shell script you lazy fuck?
       run: |
-        valgrind --error-exitcode ./bin/run ./resources/adjacencyMatrix3.txt --dijkstra 1 7
-        valgrind --error-exitcode ./bin/run ./resources/adjacencyMatrix3.txt --bfs 1 7
-        valgrind --error-exitcode ./bin/run ./resources/missingValuesMatrix.txt --bfs 1 7
-        valgrind --error-exitcode ./bin/run ./resources/invalidAdjacencyMatrix.txt --bfs 1 7
+        valgrind_error_code=5
+        valgrind_params="--leak-check=full --error-exitcode=$valgrind_error_code"
+        valgrind_run_options=(
+          "valgrind $valgrind_params ./bin/run ./resources/adjacencyMatrix3.txt --dijkstra 1 7"
+          "valgrind $valgrind_params ./bin/run ./resources/adjacencyMatrix3.txt --bfs 1 7"
+          "valgrind $valgrind_params ./bin/run ./resources/missingValuesMatrix.txt --bfs 1 7"
+          "valgrind $valgrind_params ./bin/run ./resources/invalidAdjacencyMatrix.txt --bfs 1 7"
+        )
+        exitcode=0
+        for valgrind_run_option in "${valgrind_run_options[@]}"
+        do
+          $valgrind_run_option
+          if [ $? -eq $valgrind_error_code ]; then
+            exitcode=1
+          fi
+        echo "pici $?;"
+        done
+        exit $exitcode
