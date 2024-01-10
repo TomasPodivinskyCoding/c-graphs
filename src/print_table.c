@@ -80,7 +80,16 @@ void printTable(TableParams *tableParams) {
     free(headerLengths);
 }
 
-void freeTable(TableParams *tableParams) {
+TableParams tableParamsCtor(char **headerValues, int colCount, int rowCount, char ***rowValues) {
+    TableParams tableParams;
+    tableParams.headerValues = headerValues;
+    tableParams.colCount = colCount;
+    tableParams.rowCount = rowCount;
+    tableParams.rowValues = rowValues;
+    return tableParams;
+}
+
+void freeTableParams(TableParams *tableParams) {
     for (int row = 0; row < tableParams->rowCount; row++) {
         for (int col = 0; col < tableParams->colCount; col++) {
             free(tableParams->rowValues[row][col]);

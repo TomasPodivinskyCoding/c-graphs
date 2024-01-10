@@ -9,6 +9,7 @@ typedef struct {
 } TableParams;
 
 void printTable(TableParams *tableParams);
-void freeTable(TableParams *tableParams);
+TableParams  tableParamsCtor(char **headerValues, int colCount, int rowCount, char ***rowValues);
+void freeTableParams(TableParams *tableParams);
 
 #endif //C_GRAPHS_PRINT_TABLE_H

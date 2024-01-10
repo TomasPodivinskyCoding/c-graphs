@@ -12,6 +12,39 @@
 #include "print_table.h"
 #include "char_utils.h"
 
+#define TERMINATOR_LENGTH 1
+
+void setVertexText(char **to, Graph *graph, int startValueDigitCount, int row, int startValue) {
+    char *separator = "->";
+    int nodeValueDigitCount = digitCount(graph->nodes[row].value);
+    int stringLength = startValueDigitCount + nodeValueDigitCount + (int) strlen(separator) + TERMINATOR_LENGTH;
+    int stringSize = (int) (stringLength * sizeof(char));
+    *to = malloc(stringSize);
+    sprintf(*to, "%d%s%d", startValue, separator, graph->nodes[row].value);
+}
+
+void setDistanceText(char **to, Graph *graph, int row) {
+    if (graph->nodes[row].distance == INT_MAX) {
+        char *infinity = "Infinity";
+        int stringLength = (int) strlen(infinity) + TERMINATOR_LENGTH;
+        int stringSize = (int) (stringLength * sizeof(char));
+        *to = malloc(stringSize);
+        memcpy(*to, infinity, stringSize);
+    } else {
+        int stringSize = (int) ((digitCount(graph->nodes[row].distance) + TERMINATOR_LENGTH) * sizeof(char));
+        *to = malloc(stringSize);
+        sprintf(*to, "%d", graph->nodes[row].distance);
+    }
+}
+
+void setPathText(char **to, Graph *graph, int row, int *maxPathLength) {
+    String path = nodePath(graph->nodes[row]);
+    *to = path.value;
+    if ((int) strlen(path.value) > *maxPathLength) {
+        *maxPathLength = (int) strlen(path.value);
+    }
+}
+
 char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
     char ***rowValues = malloc(graph->size * sizeof(char*));
 
@@ -19,24 +52,9 @@ char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
     int maxPathLength = 0;
     for (int row = 0; row < rowCount; row++) {
         char **cols = malloc(3 * sizeof(char *));
-        cols[0] = malloc((startValueDigitCount + digitCount(graph->nodes[row].value)) * sizeof(char) + 2 + 1);
-        sprintf(cols[0], "%d->%d", start->value, graph->nodes[row].value);
-
-        if (graph->nodes[row].distance == INT_MAX) {
-            char *infinity = "Infinity";
-            int stringLength = (int) strlen(infinity);
-            cols[1] = malloc(stringLength * sizeof(char) + 1);
-            memcpy(cols[1], infinity, stringLength * sizeof(char) + 1);
-        } else {
-            cols[1] = malloc(digitCount(graph->nodes[row].distance) * sizeof(char) + 1 + 2);
-            sprintf(cols[1], "%d", graph->nodes[row].distance);
-        }
-
-        String path = nodePath(graph->nodes[row]);
-        cols[2] = path.value;
-        if ((int) strlen(path.value) > maxPathLength) {
-            maxPathLength = (int) strlen(path.value);
-        }
+        setVertexText(&cols[0], graph, startValueDigitCount, row, start->value);
+        setDistanceText(&cols[1], graph, row);
+        setPathText(&cols[2], graph, row, &maxPathLength);
 
         rowValues[row] = cols;
     }
@@ -44,17 +62,16 @@ char ***prepareDijkstraOutputRows(Graph *graph, Node *start, int rowCount) {
 }
 
 void printDijkstraOutput(Graph *graph, Node *start) {
-    TableParams tableParams;
-    tableParams.colCount = 3;
-    tableParams.rowCount = graph->size;
-
     char *headerValues[] = { "Vertex", "Distance", "Path" };
-    tableParams.headerValues = headerValues;
+    TableParams tableParams = tableParamsCtor(
+            headerValues,
+            3,
+            graph->size,
+            prepareDijkstraOutputRows(graph, start, graph->size)
+    );
 
-    tableParams.rowValues = prepareDijkstraOutputRows(graph, start, tableParams.rowCount);
-    printf("\n");
     printTable(&tableParams);
-    freeTable(&tableParams);
+    freeTableParams(&tableParams);
 }
 
 int main(int argc, char **argv) {
@@ -90,15 +107,13 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-    if (args.algorithmKey == dijkstraKey) {
-        dijkstra(start, end, graph.size);
-        printDijkstraOutput(&graph, start);
-        graphDtor(&graph);
-        return 0;
-    }
-
 	Node *lastNode = NULL;
+    bool isNotDijkstra = args.algorithmKey != dijkstraKey;
     switch (args.algorithmKey) {
+        case dijkstraKey:
+            dijkstra(start, end, graph.size);
+            printDijkstraOutput(&graph, start);
+            break;
         case bfsKey:
             lastNode = bfs(start, end, graph.size);
             break;
@@ -106,17 +121,18 @@ int main(int argc, char **argv) {
             lastNode = dfs(start, end, graph.size);
             break;
         default:
-            // TODO
+            fprintf(stderr, "Something went wrong...");
             break;
     }
 
-	if (lastNode == NULL) {
-		fprintf(stderr, "Could not reach %d from %d\n", args.endValue, args.startValue);
-	} else {
-		printf("Výsledná trasa: ");
-		nodeBacktrackPrint(lastNode);
-		printf("\n");
-	}
+    if (isNotDijkstra) {
+        if (lastNode == NULL) {
+            fprintf(stderr, "Could not reach %d from %d\n", args.endValue, args.startValue);
+        } else {
+            nodeBacktrackPrint(lastNode);
+            printf("\n");
+        }
+    }
 	graphDtor(&graph);
 
 	return 0;
