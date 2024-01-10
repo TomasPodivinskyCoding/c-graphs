@@ -20,6 +20,7 @@ jobs:
         sudo apt-get -y install valgrind
 
     - name: make test # TODO put run content into a separate shell script you lazy fuck?
+      shell: bash {0} # this basically means, don't exit when command returns 1
       run: |
         set +x # this basically means, don't exit when command returns 1
         
